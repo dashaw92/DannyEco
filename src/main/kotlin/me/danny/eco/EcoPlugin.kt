@@ -1,5 +1,6 @@
 package me.danny.eco
 
+import me.danny.eco.commands.ReloadConfig
 import me.danny.eco.commands.ReloadWorth
 import me.danny.eco.commands.SellCommand
 import me.danny.eco.commands.SetWorthCommand
@@ -16,7 +17,9 @@ class EcoPlugin : JavaPlugin() {
     }
 
     internal val worthyml = dataFolder.resolve("worth.yml")
+    internal lateinit var config: Config
     internal lateinit var worth: Worth
+    private var taskHandle: Int = -1
 
     override fun onLoad() {
         instance = this
@@ -30,15 +33,26 @@ class EcoPlugin : JavaPlugin() {
             return
         }
 
+        logger.info("Loading config.yml")
+        config = Config.loadFromFile()
+
         logger.info("Loading worth.yml from $worthyml")
         worth = Worth.loadFromFile(worthyml)
 
         getCommand("sell")!!.setExecutor(SellCommand)
         getCommand("worth")!!.setExecutor(WorthCommand)
         getCommand("reloadworth")!!.setExecutor(ReloadWorth)
+        getCommand("reloadconfig")!!.setExecutor(ReloadConfig)
         getCommand("setworth")!!.setExecutor(SetWorthCommand)
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, ResetTask, 60L * 60L * 20L, 60L * 60L * 20L) //1 hour for real
-//        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, ResetTask, 5 * 20L, 5 * 20L) // 5 seconds for debugging
+        startTask()
+    }
+
+    internal fun startTask() {
+        if (taskHandle != -1) {
+            Bukkit.getScheduler().cancelTask(taskHandle)
+        }
+
+        taskHandle = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, ResetTask, 0L, config.resetDelayTicks)
     }
 }
 

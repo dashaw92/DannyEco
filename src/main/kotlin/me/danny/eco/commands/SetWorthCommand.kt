@@ -22,50 +22,62 @@ object SetWorthCommand : TabExecutor {
             return true
         }
 
-        if (args.isEmpty() || args.size != 3) {
-            showHelp(sender, label)
-            return true
-        }
-
         val worth = EcoPlugin.instance.worth
-
         val material = Material.matchMaterial(args[1]!!)
         if (material == null) {
-            sender.msgErr("Invalid item.")
+            sender.msgErr("Invalid material.")
             return true
         }
 
-        var item = worth.get(material)
-        if (item == null) {
-            item = Item(material, BigDecimal("0.01"), 0)
-            worth.items.add(item)
-        }
-
-        var arg = args[2]!!
-
-        when (args[0]!!.lowercase()) {
-            "limit" -> {
-                val limit = arg.toIntOrNull()
-                if (limit == null) {
-                    sender.msgErr("Invalid limit. Must be 0 or more.")
+        when (args.size) {
+            2 if args.first()?.lowercase() == "delete" -> {
+                if (!worth.canBeSold(material)) {
+                    sender.msgErr("This item cannot be sold to the server.")
                     return true
                 }
 
-                val old = item.limit
-                item.limit = limit
-                sender.msg("&7&o${humanize(item.material)}&e limit: &c&o$old -> &c$limit")
+                val old = worth.delete(material)!!
+                sender.msg("&7&o${humanize(material)} &7is off the market. Was &6${old.worth.fmt()} &7with a limit of &c${old.limit}&7.")
             }
-            "value" -> {
-                if (arg.startsWith("$")) arg = arg.substring(1)
-                val value = tryParseBigDec(arg)
-                if (value == null) {
-                    sender.msgErr("Invalid value. Must be $0.00 or more.")
-                    return true
+            3 -> {
+                var item = worth.get(material)
+                if (item == null) {
+                    item = Item(material, BigDecimal("0.01"), 0)
+                    worth.items.add(item)
                 }
 
-                val old = item.worth
-                item.worth = value
-                sender.msg("&7&o${humanize(item.material)}&e value: &c&o${old.fmt()} -> &c${value.fmt()}")
+                var arg = args[2]!!
+                when (args.first()?.lowercase()) {
+                    "limit" -> {
+                        val limit = arg.toIntOrNull()
+                        if (limit == null) {
+                            sender.msgErr("Invalid limit. Must be 0 or more.")
+                            return true
+                        }
+
+                        val old = item.limit
+                        item.limit = limit
+                        sender.msg("&7&o${humanize(item.material)}&e limit: &c&o$old -> &c$limit")
+                    }
+
+                    "value" -> {
+                        if (arg.startsWith("$")) arg = arg.substring(1)
+                        val value = tryParseBigDec(arg)
+                        if (value == null) {
+                            sender.msgErr("Invalid value. Must be $0.00 or more.")
+                            return true
+                        }
+
+                        val old = item.worth
+                        item.worth = value
+                        sender.msg("&7&o${humanize(item.material)}&e value: &c&o${old.fmt()} -> &c${value.fmt()}")
+                    }
+
+                    else -> {
+                        showHelp(sender, label)
+                        return true
+                    }
+                }
             }
             else -> {
                 showHelp(sender, label)
@@ -79,9 +91,10 @@ object SetWorthCommand : TabExecutor {
     }
 
     private fun showHelp(s: CommandSender, label: String) {
-        s.msgErr("This command lets you change the sell limit and value of items.")
+        s.msgErr("This command lets you change the sell limit, value of items, or make them unsellable.")
         s.msgErr("To change the sell limit of an item: /$label limit <item> <limit>")
         s.msgErr("To change the value of an item: /$label value <item> <value>")
+        s.msgErr("&cTo make an item unsellable: /$label delete <item>")
         s.msgErr("To remove a sell limit, set it to 0.")
         s.msgErr("Item value must be greater than $0.00.")
     }
@@ -95,7 +108,7 @@ object SetWorthCommand : TabExecutor {
         if (!sender.hasPermission("dannyeco.admin")) return null
         if (args.size > 2) return null
 
-        if (args.size <= 1) return listOf("limit", "value")
+        if (args.size <= 1) return listOf("limit", "value", "delete")
         return allMats.filter { id -> id.lowercase().startsWith(args[1]!!.lowercase()) }
     }
 }

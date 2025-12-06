@@ -4,7 +4,7 @@ import org.bukkit.Material
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 
-class Worth(val items: MutableList<Item>) {
+class Worth(val items: MutableList<Item>, val deleted: MutableSet<Material>) {
     companion object {
         private fun copyDefault() {
             EcoPlugin.instance.saveResource("worth.yml", false)
@@ -22,8 +22,7 @@ class Worth(val items: MutableList<Item>) {
                 .flatMap { parseItemsFromConfig(yml, it) } // and parse into Item instances
                 .distinctBy(Item::material) //drop duplicates - Worth should behave like a Set.
                 .toMutableList()
-//                .onEach { EcoPlugin.instance.logger.info("- ${it.material} @ ${it.worth.fmt()} each (sell limit: ${it.limit})") }
-            return Worth(items)
+            return Worth(items, mutableSetOf())
         }
 
         fun saveToFile(file: File, worth: Worth) {
@@ -39,6 +38,8 @@ class Worth(val items: MutableList<Item>) {
                 }
             }
 
+            worth.deleted.forEach { yml.set("worth.${it.name.lowercase()}", null) }
+
             try {
                 yml.save(file)
             } catch (e: Exception) {
@@ -49,4 +50,11 @@ class Worth(val items: MutableList<Item>) {
 
     fun canBeSold(material: Material) : Boolean = items.map(Item::material).contains(material)
     fun get(needle: Material) : Item? = items.find { (material, _, _) -> needle == material }
+
+    fun delete(material: Material): Item? {
+        val old = get(material)
+        items.removeIf { it.material == material }
+        deleted.add(material)
+        return old
+    }
 }

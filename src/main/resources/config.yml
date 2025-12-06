@@ -1,0 +1,18 @@
+# DannyEco config
+
+# The following options configure the sell limits.
+sell-limits:
+  # How frequently sell limits are diminished in ticks.
+  # The default is 1 hour (20tps * 60s * 60m)
+  reset-delay-ticks: 72000
+
+  # Do you want the sell limits being reset to be announced?
+  # If this is false (default), only console will receive the announce-message below.
+  # If this is true, it overrides tell-console-limits-reset and the message will be
+  # shown to all players and console.
+  announce-limits-reset: false
+  # Message console when they are reset?
+  tell-console-limits-reset: true
+  # Announcement message
+  # Colors and formatting can be specified with '&' codes.
+  announce-message: "&d[DannyEco] &7Sell limits have been refreshed!"
