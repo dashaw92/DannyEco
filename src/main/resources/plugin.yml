@@ -1,0 +1,6 @@
+name: "DannyEco"
+main: "me.danny.eco.EcoPlugin"
+version: "1.0.0"
+author: "Danny"
+api-version: 1.21
+description: "danny stonks"
