@@ -5,6 +5,7 @@ import me.danny.eco.Item
 import me.danny.eco.Worth
 import me.danny.eco.commands.WorthCommand.allMats
 import me.danny.eco.fmt
+import me.danny.eco.getTag
 import me.danny.eco.humanize
 import me.danny.eco.msg
 import me.danny.eco.msgErr
@@ -22,28 +23,30 @@ object SetWorthCommand : TabExecutor {
             return true
         }
 
-        val worth = EcoPlugin.instance.worth
-        val material = Material.matchMaterial(args[1]!!)
-        if (material == null) {
-            sender.msgErr("Invalid material.")
+        if (args.size < 2) {
+            showHelp(sender, label)
             return true
         }
 
+        val worth = EcoPlugin.instance.worth
+        val target = args[1]?.lowercase()!!
+        val item = worth.getItem(target)
+
         when (args.size) {
             2 if args.first()?.lowercase() == "delete" -> {
-                if (!worth.canBeSold(material)) {
-                    sender.msgErr("This item cannot be sold to the server.")
+                if (item == null) {
+                    sender.msg("Invalid item or tag.")
                     return true
                 }
 
-                val old = worth.delete(material)!!
-                sender.msg("&7&o${humanize(material)} &7is off the market. Was &6${old.worth.fmt()} &7with a limit of &c${old.limit}&7.")
+                worth.delete(item)
+                sender.msg("&7&o${item.name()} &7is off the market. Was &6${item.worth.fmt()} &7with a limit of &c${item.limit}&7.")
             }
             3 -> {
-                var item = worth.get(material)
+                val item = worth.getOrCreateItem(target)
                 if (item == null) {
-                    item = Item(material, BigDecimal("0.01"), 0)
-                    worth.items.add(item)
+                    sender.msg("Invalid item or tag.")
+                    return true
                 }
 
                 var arg = args[2]!!
@@ -57,7 +60,7 @@ object SetWorthCommand : TabExecutor {
 
                         val old = item.limit
                         item.limit = limit
-                        sender.msg("&7&o${humanize(item.material)}&e limit: &c&o$old -> &c$limit")
+                        sender.msg("&7&o${item.name()}&e limit: &c&o$old -> &c$limit")
                     }
 
                     "value" -> {
@@ -70,7 +73,7 @@ object SetWorthCommand : TabExecutor {
 
                         val old = item.worth
                         item.worth = value
-                        sender.msg("&7&o${humanize(item.material)}&e value: &c&o${old.fmt()} -> &c${value.fmt()}")
+                        sender.msg("&7&o${item.name()}&e value: &c&o${old.fmt()} -> &c${value.fmt()}")
                     }
 
                     else -> {
@@ -79,12 +82,12 @@ object SetWorthCommand : TabExecutor {
                     }
                 }
             }
+
             else -> {
                 showHelp(sender, label)
                 return true
             }
         }
-
         Worth.saveToFile(EcoPlugin.instance.worthyml, worth)
         EcoPlugin.instance.worth = Worth.loadFromFile(EcoPlugin.instance.worthyml)
         return true

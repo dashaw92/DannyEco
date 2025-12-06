@@ -1,26 +1,28 @@
 package me.danny.eco
 
 import org.bukkit.Material
+import org.bukkit.Tag
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
+import java.math.BigDecimal
 
-class Worth(val items: MutableList<Item>, val deleted: MutableSet<Material>) {
+class Worth(val items: MutableList<Item>, val deleted: MutableSet<String>) {
     companion object {
         private fun copyDefault() {
             EcoPlugin.instance.saveResource("worth.yml", false)
         }
 
-        fun loadFromFile(file: File) : Worth {
+        fun loadFromFile(file: File): Worth {
             if (!file.exists()) copyDefault()
             return load(file)
         }
 
-        private fun load(file: File) : Worth {
+        private fun load(file: File): Worth {
             val yml = YamlConfiguration.loadConfiguration(file)
             val items: MutableList<Item> = yml.getConfigurationSection("worth")!!
                 .getKeys(false)
-                .flatMap { parseItemsFromConfig(yml, it) } // and parse into Item instances
-                .distinctBy(Item::material) //drop duplicates - Worth should behave like a Set.
+                .mapNotNull { parseItemsFromConfig(yml, it) } // and parse into Item instances
+                .distinctBy { it.ymlPath }
                 .toMutableList()
             return Worth(items, mutableSetOf())
         }
@@ -28,17 +30,16 @@ class Worth(val items: MutableList<Item>, val deleted: MutableSet<Material>) {
         fun saveToFile(file: File, worth: Worth) {
             val yml = YamlConfiguration.loadConfiguration(file)
 
-            for (item in worth.items.sortedBy { it.material.name }) {
-                val path = "worth.${item.material.name.lowercase()}"
+            for (item in worth.items.sortedBy { it.ymlPath }) {
                 if (item.limit == 0) {
-                    yml.set(path, item.worth.toDouble())
+                    yml.set(item.ymlPath, item.worth.toDouble())
                 } else {
-                    yml.set("$path.value", item.worth.toDouble())
-                    yml.set("$path.limit", item.limit)
+                    yml.set("${item.ymlPath}.value", item.worth.toDouble())
+                    yml.set("${item.ymlPath}.limit", item.limit)
                 }
             }
 
-            worth.deleted.forEach { yml.set("worth.${it.name.lowercase()}", null) }
+            worth.deleted.forEach { yml.set("worth.${it.lowercase()}", null) }
 
             try {
                 yml.save(file)
@@ -48,13 +49,36 @@ class Worth(val items: MutableList<Item>, val deleted: MutableSet<Material>) {
         }
     }
 
-    fun canBeSold(material: Material) : Boolean = items.map(Item::material).contains(material)
-    fun get(needle: Material) : Item? = items.find { (material, _, _) -> needle == material }
+    fun canBeSold(material: Material): Boolean = items.flatMap(Item::materials).contains(material)
 
-    fun delete(material: Material): Item? {
-        val old = get(material)
-        items.removeIf { it.material == material }
-        deleted.add(material)
-        return old
+    fun getItem(query: String): Item? {
+        val mat = Material.matchMaterial(query) ?: return getTaggedItem(query)
+        return get(mat)
+    }
+
+    fun getOrCreateItem(target: String): Item? {
+        val existing = getItem(target)
+        if (existing != null) return existing
+
+        val mat = Material.matchMaterial(target)
+        val item = if (mat == null) {
+            val tag = getTag(target) ?: return null
+            TagGroup("worth.${target.lowercase()}", target.lowercase(), tag, BigDecimal("0.01"), 0)
+        } else {
+            BasicItem("worth.${mat.name.lowercase()}", mat, BigDecimal("0.01"), 0)
+        }
+
+        items.add(item)
+        return item
+    }
+
+    private fun get(needle: Material): Item? =
+        items.find { it -> it.materials().contains(needle) }
+
+    private fun getTaggedItem(tag: String): TagGroup? = items.filterIsInstance<TagGroup>().find { it.name.equals(tag, true) }
+
+    fun delete(item: Item) {
+        items.removeIf { it.ymlPath == item.ymlPath }
+        deleted.add(item.ymlPath)
     }
 }

@@ -1,9 +1,9 @@
 package me.danny.eco.commands
 
 import me.danny.eco.EcoPlugin
+import me.danny.eco.Item
 import me.danny.eco.LimitTracking
 import me.danny.eco.fmt
-import me.danny.eco.humanize
 import me.danny.eco.msg
 import me.danny.eco.msgErr
 import org.bukkit.Material
@@ -19,20 +19,21 @@ object WorthCommand : TabExecutor {
             return true
         }
 
+        val worth = EcoPlugin.instance.worth
         if (!args.isEmpty()) {
-            val material = Material.matchMaterial(args[0]!!)
-            if (material == null) {
-                sender.msgErr("Unknown material: &c${args[0]}")
+            val item = worth.getItem(args[0]!!)
+            if (item == null) {
+                sender.msgErr("Unknown item or tag: &c${args[0]}")
                 return true
             }
 
-            showWorth(sender, material)
+            showWorth(sender, item)
             return true
         }
 
         if (sender is Player) {
-            val item = sender.inventory.itemInMainHand
-            showWorth(sender, item.type)
+            val item = worth.getItem(sender.inventory.itemInMainHand.type.name)
+            showWorth(sender, item)
             return true
         }
 
@@ -40,21 +41,20 @@ object WorthCommand : TabExecutor {
         return true
     }
 
-    private fun showWorth(s: CommandSender, m: Material) {
+    private fun showWorth(s: CommandSender, item: Item?) {
         val worth = EcoPlugin.instance.worth
-        if (!worth.canBeSold(m)) {
+        if (item == null) {
             s.msgErr("Cannot sell this item to the server!")
             return
         }
 
-        val item = worth.get(m)!!
         val limit = if (item.limit != 0 && s is Player) {
-            val remaining = LimitTracking.remaining(s, m)!!
+            val remaining = LimitTracking.remaining(s, item.name())!!
             " &cYour limit: ${item.limit - remaining}/${item.limit}&e."
         } else {
             ""
         }
-        s.msg("&7&o${humanize(m)}&e: Worth &6${item.worth.fmt()}&e.${limit}")
+        s.msg("&7&o${item.name()}&e: Worth &6${item.worth.fmt()}&e.${limit}")
     }
 
     internal val allMats = Material.entries.map { it.name }

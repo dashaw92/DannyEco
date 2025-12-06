@@ -7,15 +7,15 @@ import java.util.UUID
 internal object LimitTracking {
     private val M = mutableMapOf<UUID, MutableList<MaterialCount>>()
 
-    private fun getCount(pl: Player, material: Material) : MaterialCount? {
-        val item = EcoPlugin.instance.worth.get(material)!!
+    private fun getCount(pl: Player, name: String) : MaterialCount? {
+        val item = EcoPlugin.instance.worth.getItem(name)!!
         if (item.limit == 0) return null
         M.putIfAbsent(pl.uniqueId, mutableListOf())
 
         val counts = M[pl.uniqueId]!!
-        val maybeCount = counts.find { mc -> mc.material == material }
+        val maybeCount = counts.find { mc -> mc.name == name }
         if (maybeCount == null) {
-            val newCount = MaterialCount(material, item.limit)
+            val newCount = MaterialCount(name, item.limit)
             counts.add(newCount)
             return newCount
         }
@@ -23,22 +23,22 @@ internal object LimitTracking {
         return maybeCount
     }
 
-    internal fun remaining(pl: Player, material: Material): Int? {
-        return getCount(pl, material)?.count
+    internal fun remaining(pl: Player, name: String): Int? {
+        return getCount(pl, name)?.count
     }
 
-    internal fun add(pl: Player, material: Material, amount: Int): Int? {
-        val canSell = remaining(pl, material) ?: return null
+    internal fun add(pl: Player, name: String, amount: Int): Int? {
+        val canSell = remaining(pl, name) ?: return null
         var willSell = amount
         if (canSell < amount) {
             willSell = canSell
         }
 
-        getCount(pl, material)!!.count = canSell - willSell
+        getCount(pl, name)!!.count = canSell - willSell
         return willSell
     }
 
     internal fun resetAll() = M.clear()
 }
 
-private data class MaterialCount(val material: Material, var count: Int)
+private data class MaterialCount(val name: String, var count: Int)

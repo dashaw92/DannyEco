@@ -1,11 +1,11 @@
 package me.danny.eco.commands
 
 import me.danny.eco.EcoPlugin
+import me.danny.eco.Item
 import me.danny.eco.LimitTracking
 import me.danny.eco.color
 import me.danny.eco.fmt
 import me.danny.eco.giveMoney
-import me.danny.eco.humanize
 import me.danny.eco.msg
 import me.danny.eco.msgErr
 import org.bukkit.Material
@@ -65,17 +65,19 @@ object SellCommand : TabExecutor {
 
     private fun sellHand(pl: Player, args: Array<out String?>) {
         val worth = EcoPlugin.instance.worth
-        val item = pl.inventory.itemInMainHand.type
-        if (item.isAir || !worth.canBeSold(item)) {
+        val material = pl.inventory.itemInMainHand.type
+        if (material.isAir || !worth.canBeSold(material)) {
             pl.msgErr("Cannot sell this item to the server!")
             return
         }
 
+        val item = worth.getItem(material.name)!!
+
         var amount = args.getOrNull(1)?.toIntOrNull()?.coerceAtLeast(1)
-        val limit = LimitTracking.remaining(pl, item)
+        val limit = LimitTracking.remaining(pl, item.name())
         if (limit != null) {
             if (limit == 0) {
-                pl.msgErr("You have hit the daily limit for &o${humanize(item)}&7.")
+                pl.msgErr("You have hit the daily limit for &o${item.name()}&7.")
                 return
             }
 
@@ -87,7 +89,7 @@ object SellCommand : TabExecutor {
         var sold = 0
         for (i in SLOTS) {
             val it = pl.inventory.getItem(i)
-            if (it == null || it.type != item) continue
+            if (it == null || it.type != material) continue
 
             val stackSize = it.amount
             if (amount == null) {
@@ -106,31 +108,33 @@ object SellCommand : TabExecutor {
             }
         }
 
-        LimitTracking.add(pl, item, sold)
-        trySell(pl, item, sold)
+        LimitTracking.add(pl, item.name(), sold)
+        trySell(pl, item, material,sold)
     }
 
     private fun sellInventory(pl: Player, filter: (ItemStack) -> Boolean) {
-        val seen = mutableSetOf<Material>()
+        val worth = EcoPlugin.instance.worth
+        val seen = mutableSetOf<String>()
 
         var soldAnything = false
         for (i in SLOTS) {
             val it = pl.inventory.getItem(i)
             if (it == null || !EcoPlugin.instance.worth.canBeSold(it.type) || !filter(it)) continue
 
+            val item = worth.getItem(it.type.name)!!
             var amount = it.amount
-            val limit = LimitTracking.remaining(pl, it.type)
+            val limit = LimitTracking.remaining(pl, item.name())
             if (limit != null) {
                 if (limit == 0) {
-                    if (!seen.contains(it.type)) {
-                        pl.msgErr("You have hit the daily limit for &o${humanize(it.type)}&7.")
-                        seen.add(it.type)
+                    if (!seen.contains(item.name())) {
+                        pl.msgErr("You have hit the limit for &o${item.name()}&7.")
+                        seen.add(item.name())
                     }
                     continue
                 }
 
                 if (amount > limit) amount = limit
-                LimitTracking.add(pl, it.type, amount)
+                LimitTracking.add(pl, item.name(), amount)
             }
 
             if (amount == it.amount) {
@@ -139,7 +143,7 @@ object SellCommand : TabExecutor {
                 it.amount = amount
             }
 
-            trySell(pl, it.type, amount)
+            trySell(pl, item, it.type, amount)
             soldAnything = true
         }
 
@@ -165,12 +169,12 @@ object SellCommand : TabExecutor {
     }
 }
 
-private fun trySell(pl: Player, it: Material, amount: Int) {
-    val profit = EcoPlugin.instance.worth.get(it)!!.worth * BigDecimal(amount)
+private fun trySell(pl: Player, item: Item, mat: Material, amount: Int) {
+    val profit = item.worth * BigDecimal(amount)
     if (!giveMoney(pl, profit)) {
         pl.msgErr("An error occurred trying to sell your items. Your items have been returned.")
-        pl.inventory.addItem(ItemStack(it, amount))
+        pl.inventory.addItem(ItemStack(mat, amount))
     } else {
-        pl.msg("&eSold &d${amount} &7&o${humanize(it)} &efor &6${profit.fmt()}&e.")
+        pl.msg("&eSold &d${amount} &7&o${item.name()} &efor &6${profit.fmt()}&e.")
     }
 }
