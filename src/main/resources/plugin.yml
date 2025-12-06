@@ -4,3 +4,25 @@ version: "1.0.0"
 author: "Danny"
 api-version: 1.21
 description: "danny stonks"
+depend:
+  - Vault
+  - Essentials
+libraries:
+  - org.jetbrains.kotlin:kotlin-stdlib:2.2.20
+commands:
+  sell:
+    aliases: ["stonks", "dansell", "makemoney", "bigbusinesstime", "hustle"]
+    description: "Sell command!"
+    usage: /<command>
+  worth:
+    aliases: ["howmuchisthis", "whatisthis", "amirich", "itemvalue", "value"]
+    description: "Worth command!"
+    usage: /<command>
+  reloadworth:
+    aliases: ["refreshworth", "worthreload", "updateworth", "ecoreload", "ecorl"]
+    description: "Reload worth.yml!"
+    usage: /<command>
+  setworth:
+    aliases: ["seizethemeans", "disruptthemarket", "changevalue", "setvalue", "setlimit"]
+    description: "Change worth.yml!"
+    usage: /<command>

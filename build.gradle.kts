@@ -10,9 +10,15 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
-    maven(url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+    maven("https://jitpack.io")
 }
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:$spigotVersion")
+    compileOnly("com.github.milkbowl:VaultAPI:1.7")
+}
+
+kotlin {
+    jvmToolchain(21)
 }
