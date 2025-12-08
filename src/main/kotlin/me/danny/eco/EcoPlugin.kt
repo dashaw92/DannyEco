@@ -1,10 +1,12 @@
 package me.danny.eco
 
+import me.danny.eco.commands.BinCommand
 import me.danny.eco.commands.ReloadConfig
 import me.danny.eco.commands.ReloadWorth
 import me.danny.eco.commands.SellCommand
 import me.danny.eco.commands.SetWorthCommand
 import me.danny.eco.commands.WorthCommand
+import me.danny.eco.tracking.EcoAnalytics
 import net.md_5.bungee.api.ChatColor
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -39,12 +41,20 @@ class EcoPlugin : JavaPlugin() {
         logger.info("Loading worth.yml from $worthyml")
         worth = Worth.loadFromFile(worthyml)
 
+        EcoAnalytics.load()
+
         getCommand("sell")!!.setExecutor(SellCommand)
         getCommand("worth")!!.setExecutor(WorthCommand)
         getCommand("reloadworth")!!.setExecutor(ReloadWorth)
         getCommand("reloadconfig")!!.setExecutor(ReloadConfig)
         getCommand("setworth")!!.setExecutor(SetWorthCommand)
+
+        getCommand("bin")!!.setExecutor(BinCommand)
         startTask()
+    }
+
+    override fun onDisable() {
+        EcoAnalytics.save()
     }
 
     internal fun startTask() {

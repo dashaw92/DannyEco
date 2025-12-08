@@ -22,11 +22,6 @@ object WorthCommand : TabExecutor {
         val worth = EcoPlugin.instance.worth
         if (!args.isEmpty()) {
             val item = worth.getItem(args[0]!!)
-            if (item == null) {
-                sender.msgErr("Unknown item or tag: &c${args[0]}")
-                return true
-            }
-
             showWorth(sender, item)
             return true
         }
@@ -42,7 +37,6 @@ object WorthCommand : TabExecutor {
     }
 
     private fun showWorth(s: CommandSender, item: Item?) {
-        val worth = EcoPlugin.instance.worth
         if (item == null) {
             s.msgErr("Cannot sell this item to the server!")
             return

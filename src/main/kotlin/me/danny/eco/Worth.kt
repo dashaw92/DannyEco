@@ -1,7 +1,6 @@
 package me.danny.eco
 
 import org.bukkit.Material
-import org.bukkit.Tag
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 import java.math.BigDecimal
@@ -39,7 +38,7 @@ class Worth(val items: MutableList<Item>, val deleted: MutableSet<String>) {
                 }
             }
 
-            worth.deleted.forEach { yml.set("worth.${it.lowercase()}", null) }
+            worth.deleted.forEach { yml.set(it, null) }
 
             try {
                 yml.save(file)
@@ -73,7 +72,7 @@ class Worth(val items: MutableList<Item>, val deleted: MutableSet<String>) {
     }
 
     private fun get(needle: Material): Item? =
-        items.find { it -> it.materials().contains(needle) }
+        items.find { it.materials().contains(needle) }
 
     private fun getTaggedItem(tag: String): TagGroup? = items.filterIsInstance<TagGroup>().find { it.name.equals(tag, true) }
 

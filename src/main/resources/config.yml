@@ -16,3 +16,13 @@ sell-limits:
   # Announcement message
   # Colors and formatting can be specified with '&' codes.
   announce-message: "&d[DannyEco] &7Sell limits have been refreshed!"
+
+# Regarding economy analysis (volume tracking, etc.)
+eco-analytics:
+  # If this is false, the entire feature will be unavailable on the server.
+  # There is no real downside to leaving this enabled- the storage used by
+  # this feature is minimal (100 items tracked will result in a 4.5 MB file).
+  enabled: true
+
+# DO NOT TOUCH THIS!
+$version: 2

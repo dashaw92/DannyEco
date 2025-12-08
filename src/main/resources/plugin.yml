@@ -30,3 +30,5 @@ commands:
     aliases: [ "reload", "updateconfig", "configreload"]
     description: "Reload config.yml!"
     usage: /<command>
+  bin:
+    usage: /<command>
