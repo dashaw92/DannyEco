@@ -6,7 +6,8 @@ import me.danny.eco.commands.ReloadWorth
 import me.danny.eco.commands.SellCommand
 import me.danny.eco.commands.SetWorthCommand
 import me.danny.eco.commands.WorthCommand
-import me.danny.eco.tracking.EcoAnalytics
+import me.danny.eco.tracking.Analytics
+import me.danny.eco.tracking.getAnalytics
 import net.md_5.bungee.api.ChatColor
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -21,6 +22,7 @@ class EcoPlugin : JavaPlugin() {
     internal val worthyml = dataFolder.resolve("worth.yml")
     internal lateinit var config: Config
     internal lateinit var worth: Worth
+    internal lateinit var analytics: Analytics
     private var taskHandle: Int = -1
 
     override fun onLoad() {
@@ -35,13 +37,10 @@ class EcoPlugin : JavaPlugin() {
             return
         }
 
-        logger.info("Loading config.yml")
-        config = Config.loadFromFile()
-
         logger.info("Loading worth.yml from $worthyml")
         worth = Worth.loadFromFile(worthyml)
 
-        EcoAnalytics.load()
+        configReload()
 
         getCommand("sell")!!.setExecutor(SellCommand)
         getCommand("worth")!!.setExecutor(WorthCommand)
@@ -54,7 +53,17 @@ class EcoPlugin : JavaPlugin() {
     }
 
     override fun onDisable() {
-        EcoAnalytics.save()
+        analytics.save()
+    }
+
+    internal fun configReload() {
+        logger.info("Loading config.yml")
+        config = Config.loadFromFile()
+
+        analytics = getAnalytics(config)
+        analytics.load()
+
+        startTask()
     }
 
     internal fun startTask() {

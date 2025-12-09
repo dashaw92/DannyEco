@@ -21,7 +21,7 @@ sell-limits:
 eco-analytics:
   # If this is false, the entire feature will be unavailable on the server.
   # There is no real downside to leaving this enabled- the storage used by
-  # this feature is minimal (100 items tracked will result in a 4.5 MB file).
+  # this feature is minimal.
   enabled: true
 
 # DO NOT TOUCH THIS!

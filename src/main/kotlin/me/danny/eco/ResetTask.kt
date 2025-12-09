@@ -15,6 +15,7 @@ object ResetTask : Runnable {
             Bukkit.getConsoleSender().msg(config.announceMessage)
         }
 
+        EcoPlugin.instance.analytics.tick()
         LimitTracking.resetAll()
     }
 }

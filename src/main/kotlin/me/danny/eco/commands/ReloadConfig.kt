@@ -1,6 +1,5 @@
 package me.danny.eco.commands
 
-import me.danny.eco.Config
 import me.danny.eco.EcoPlugin
 import me.danny.eco.msg
 import me.danny.eco.msgErr
@@ -15,8 +14,7 @@ object ReloadConfig : CommandExecutor {
             return true
         }
 
-        EcoPlugin.instance.config = Config.loadFromFile()
-        EcoPlugin.instance.startTask()
+        EcoPlugin.instance.configReload()
         sender.msg("Config reloaded!")
         return true
     }

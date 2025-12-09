@@ -2,14 +2,7 @@ package me.danny.eco.tracking
 
 import java.io.Serializable
 
-//How many hours for 1 bin
-private const val RESOLUTION = 1
-private const val BINS_PER_DAY = 24 * RESOLUTION
-//How many days of history to keep
-private const val TOTAL_DAYS = 30
-private const val TOTAL_BINS = TOTAL_DAYS * BINS_PER_DAY
-
-internal class ItemVolumeHistory(val bins: LongArray = LongArray(TOTAL_BINS) { it.toLong() }) : Serializable {
+internal class ItemVolumeHistory(val bins: LongArray = LongArray(TOTAL_BINS.toInt())) : Serializable {
 
     fun startNextBin() {
         bins.shift(1)
@@ -22,10 +15,10 @@ internal class ItemVolumeHistory(val bins: LongArray = LongArray(TOTAL_BINS) { i
     fun getFirstNDays(days: Int) : List<Long> {
         val clampedDays = days.coerceIn(1, TOTAL_DAYS)
         val numBins = clampedDays * BINS_PER_DAY
-        return bins.slice(0 until numBins)
+        return bins.slice(0 until numBins.toInt()).reversed()
     }
 
-    fun averagePerDay() : Long = bins.sum() / TOTAL_DAYS
+    fun averagePerDay() = bins.sum() / TOTAL_DAYS
 }
 
 // [1, 2, 3, ..., n].shift(1) -> [0, 1, 2, 3, ...]

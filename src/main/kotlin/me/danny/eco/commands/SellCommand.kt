@@ -175,6 +175,7 @@ private fun trySell(pl: Player, item: Item, mat: Material, amount: Int) {
         pl.msgErr("An error occurred trying to sell your items. Your items have been returned.")
         pl.inventory.addItem(ItemStack(mat, amount))
     } else {
+        EcoPlugin.instance.analytics.log(item, amount.toLong())
         pl.msg("&eSold &d${amount} &7&o${item.name()} &efor &6${profit.fmt()}&e.")
     }
 }
