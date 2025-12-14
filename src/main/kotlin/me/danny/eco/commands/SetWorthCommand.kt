@@ -1,24 +1,14 @@
 package me.danny.eco.commands
 
-import me.danny.eco.EcoPlugin
-import me.danny.eco.Item
-import me.danny.eco.Worth
+import me.danny.eco.*
 import me.danny.eco.commands.WorthCommand.allMats
-import me.danny.eco.fmt
-import me.danny.eco.getTag
-import me.danny.eco.humanize
-import me.danny.eco.msg
-import me.danny.eco.msgErr
-import me.danny.eco.tryParseBigDec
-import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabExecutor
-import java.math.BigDecimal
 
 object SetWorthCommand : TabExecutor {
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String?>): Boolean {
-        if (!sender.hasPermission("dannyeco.admin")) {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
+        if (!sender.hasPermission(Permissions.SET_WORTH)) {
             sender.msgErr("You lack permission for this command.")
             return true
         }
@@ -29,11 +19,11 @@ object SetWorthCommand : TabExecutor {
         }
 
         val worth = EcoPlugin.instance.worth
-        val target = args[1]?.lowercase()!!
+        val target = args[1].lowercase()
         val item = worth.getItem(target)
 
         when (args.size) {
-            2 if args.first()?.lowercase() == "delete" -> {
+            2 if args.first().lowercase() == "delete" -> {
                 if (item == null) {
                     sender.msg("Invalid item or tag.")
                     return true
@@ -49,8 +39,8 @@ object SetWorthCommand : TabExecutor {
                     return true
                 }
 
-                var arg = args[2]!!
-                when (args.first()?.lowercase()) {
+                var arg = args[2]
+                when (args.first().lowercase()) {
                     "limit" -> {
                         val limit = arg.toIntOrNull()
                         if (limit == null) {
@@ -106,12 +96,12 @@ object SetWorthCommand : TabExecutor {
         sender: CommandSender,
         command: Command,
         label: String,
-        args: Array<out String?>
+        args: Array<String>
     ): List<String?>? {
         if (!sender.hasPermission("dannyeco.admin")) return null
         if (args.size > 2) return null
 
         if (args.size <= 1) return listOf("limit", "value", "delete")
-        return allMats.filter { id -> id.lowercase().startsWith(args[1]!!.lowercase()) }
+        return allMats.filter { id -> id.lowercase().startsWith(args[1].lowercase()) }
     }
 }

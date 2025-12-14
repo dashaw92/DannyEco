@@ -24,5 +24,12 @@ eco-analytics:
   # this feature is minimal.
   enabled: true
 
+# Should a log that tracks who sells what on the server be maintained?
+logging:
+  # If false, sale logs will not be available
+  enabled: true
+  # If false, logs will not be saved to disk.
+  persist-logs: true
+
 # DO NOT TOUCH THIS!
-$version: 2
+$version: 3

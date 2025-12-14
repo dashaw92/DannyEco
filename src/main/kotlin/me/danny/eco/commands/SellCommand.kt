@@ -3,6 +3,7 @@ package me.danny.eco.commands
 import me.danny.eco.EcoPlugin
 import me.danny.eco.Item
 import me.danny.eco.LimitTracking
+import me.danny.eco.Permissions
 import me.danny.eco.color
 import me.danny.eco.fmt
 import me.danny.eco.giveMoney
@@ -17,7 +18,7 @@ import org.bukkit.inventory.ItemStack
 import java.math.BigDecimal
 
 object SellCommand : TabExecutor {
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String?>): Boolean {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
             sender.msgErr("Cannot use this command from console.")
             return true
@@ -33,9 +34,9 @@ object SellCommand : TabExecutor {
             return true
         }
 
-        when (args[0]!!.lowercase()) {
+        when (args[0].lowercase()) {
             "hand" -> sellHand(sender, args)
-            "inventory" -> sellInventory(sender) { true }
+            "all", "inventory" -> sellInventory(sender) { true }
             "blocks" -> sellInventory(sender) { it.type.isBlock }
             "items" -> sellInventory(sender) { !it.type.isBlock }
             else -> showHelp(sender, label)
@@ -47,14 +48,14 @@ object SellCommand : TabExecutor {
         sender: CommandSender,
         command: Command,
         label: String,
-        args: Array<out String?>
+        args: Array<String>
     ): List<String?>? {
-        if (!sender.hasPermission("dannyeco.sell")) return null
+        if (!sender.hasPermission(Permissions.SELL)) return null
         if (args.size > 1) return null
 
-        val allIds = listOf("hand", "inventory", "blocks", "items")
+        val allIds = listOf("hand", "all", "inventory", "blocks", "items")
         if (args.isEmpty()) return allIds
-        return allIds.filter { id -> id.lowercase().startsWith(args[0]!!.lowercase()) }
+        return allIds.filter { id -> id.lowercase().startsWith(args[0].lowercase()) }
     }
 
     private val SLOTS = run {
@@ -159,7 +160,7 @@ object SellCommand : TabExecutor {
             &7You must provide one of the following options:
             &9/$label &3hand &a[amount]&e - Sells up to &a[amount]&e of held item.
             &eIf &a[amount]&e is not specified, &aall&e will be sold.
-            &9/$label &3inventory &e- Sells &aall&e items that can be sold.
+            &9/$label &3all &e- Sells &aall&e items that can be sold.
             &9/$label &3blocks &e- Sells &aall&e sellable blocks.
             &9/$label &3items &e- Sells &aall&e sellable items.
         """.trimIndent()
@@ -176,6 +177,7 @@ private fun trySell(pl: Player, item: Item, mat: Material, amount: Int) {
         pl.inventory.addItem(ItemStack(mat, amount))
     } else {
         EcoPlugin.instance.analytics.log(item, amount.toLong())
+        EcoPlugin.instance.ecolog.log(pl, item, amount.toLong(), profit)
         pl.msg("&eSold &d${amount} &7&o${item.name()} &efor &6${profit.fmt()}&e.")
     }
 }

@@ -32,3 +32,7 @@ commands:
     usage: /<command>
   bin:
     usage: /<command>
+  ecolog:
+    aliases: [ "log", "viewlog", "viewsales", "sales", "salelog", "glowiesconfirmed" ]
+    description: "View sale logs!"
+    usage: /<command>

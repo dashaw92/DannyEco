@@ -4,7 +4,7 @@ import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 import kotlin.reflect.KProperty
 
-private const val CURRENT_CONFIG_VERSION = 2
+private const val CURRENT_CONFIG_VERSION = 3
 
 class Config(file: File) {
     companion object {
@@ -39,6 +39,9 @@ class Config(file: File) {
     val announceMessage: String by ConfigProp(yml, "sell-limits.announce-message", "&d[DannyEco] &7Sell limits have been refreshed!")
 
     val ecoAnalyticsEnabled: Boolean by ConfigProp(yml, "eco-analytics.enabled", true)
+
+    val loggingEnabled: Boolean by ConfigProp(yml, "logging.enabled", true)
+    val loggingPersistLogs: Boolean by ConfigProp(yml, "logging.persist-logs", true)
 }
 
 class ConfigProp<T>(val yml: YamlConfiguration, val path: String, val fallback: T) {

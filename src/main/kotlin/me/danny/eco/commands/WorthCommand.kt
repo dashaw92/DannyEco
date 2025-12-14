@@ -3,6 +3,7 @@ package me.danny.eco.commands
 import me.danny.eco.EcoPlugin
 import me.danny.eco.Item
 import me.danny.eco.LimitTracking
+import me.danny.eco.Permissions
 import me.danny.eco.fmt
 import me.danny.eco.msg
 import me.danny.eco.msgErr
@@ -13,15 +14,15 @@ import org.bukkit.command.TabExecutor
 import org.bukkit.entity.Player
 
 object WorthCommand : TabExecutor {
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String?>): Boolean {
-        if (!sender.hasPermission("dannyeco.sell")) {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
+        if (!sender.hasPermission(Permissions.WORTH)) {
             sender.msgErr("You lack permission for this command.")
             return true
         }
 
         val worth = EcoPlugin.instance.worth
         if (!args.isEmpty()) {
-            val item = worth.getItem(args[0]!!)
+            val item = worth.getItem(args[0])
             showWorth(sender, item)
             return true
         }
@@ -57,12 +58,12 @@ object WorthCommand : TabExecutor {
         sender: CommandSender,
         command: Command,
         label: String,
-        args: Array<out String?>
+        args: Array<String>
     ): List<String?>? {
         if (!sender.hasPermission("dannyeco.sell")) return null
         if (args.size > 1) return null
 
         if (args.isEmpty()) return allMats
-        return allMats.filter { id -> id.lowercase().startsWith(args[0]!!.lowercase()) }
+        return allMats.filter { id -> id.lowercase().startsWith(args[0].lowercase()) }
     }
 }

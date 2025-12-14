@@ -1,11 +1,14 @@
 package me.danny.eco
 
 import me.danny.eco.commands.BinCommand
+import me.danny.eco.commands.EcoLogCommand
 import me.danny.eco.commands.ReloadConfig
 import me.danny.eco.commands.ReloadWorth
 import me.danny.eco.commands.SellCommand
 import me.danny.eco.commands.SetWorthCommand
 import me.danny.eco.commands.WorthCommand
+import me.danny.eco.logging.Logging
+import me.danny.eco.logging.getLogging
 import me.danny.eco.tracking.Analytics
 import me.danny.eco.tracking.getAnalytics
 import net.md_5.bungee.api.ChatColor
@@ -21,6 +24,7 @@ class EcoPlugin : JavaPlugin() {
 
     internal val worthyml = dataFolder.resolve("worth.yml")
     internal lateinit var config: Config
+    internal lateinit var ecolog: Logging
     internal lateinit var worth: Worth
     internal lateinit var analytics: Analytics
     private var taskHandle: Int = -1
@@ -47,6 +51,7 @@ class EcoPlugin : JavaPlugin() {
         getCommand("reloadworth")!!.setExecutor(ReloadWorth)
         getCommand("reloadconfig")!!.setExecutor(ReloadConfig)
         getCommand("setworth")!!.setExecutor(SetWorthCommand)
+        getCommand("ecolog")!!.setExecutor(EcoLogCommand)
 
         getCommand("bin")!!.setExecutor(BinCommand)
         startTask()
@@ -54,6 +59,7 @@ class EcoPlugin : JavaPlugin() {
 
     override fun onDisable() {
         analytics.save()
+        ecolog.save()
     }
 
     internal fun configReload() {
@@ -62,6 +68,9 @@ class EcoPlugin : JavaPlugin() {
 
         analytics = getAnalytics(config)
         analytics.load()
+
+        ecolog = getLogging(config)
+        ecolog.load()
 
         startTask()
     }

@@ -2,16 +2,18 @@ package me.danny.eco.commands
 
 import me.danny.eco.EcoPlugin
 import me.danny.eco.Graph
+import me.danny.eco.Permissions
 import me.danny.eco.msg
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabExecutor
 
 object BinCommand : TabExecutor {
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String?>): Boolean {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
+        if (!sender.hasPermission(Permissions.BIN)) return true
         if (args.size != 1) return false
 
-        val hist = EcoPlugin.instance.analytics.getHistory(args[0]!!)!!
+        val hist = EcoPlugin.instance.analytics.getHistory(args[0])!!
         val data = hist.getFirstNDays(3)
 
         val graph = Graph.create(
@@ -38,6 +40,6 @@ object BinCommand : TabExecutor {
         sender: CommandSender,
         command: Command,
         label: String,
-        args: Array<out String?>
-    ): List<String?> = EcoPlugin.instance.analytics.allKeys().toList()
+        args: Array<String>
+    ): List<String> = EcoPlugin.instance.analytics.allKeys().toList()
 }
