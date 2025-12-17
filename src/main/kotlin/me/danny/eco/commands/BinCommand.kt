@@ -3,10 +3,14 @@ package me.danny.eco.commands
 import me.danny.eco.EcoPlugin
 import me.danny.eco.Graph
 import me.danny.eco.Permissions
+import me.danny.eco.color
 import me.danny.eco.msg
+import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabExecutor
+import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 
 object BinCommand : TabExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
@@ -14,23 +18,22 @@ object BinCommand : TabExecutor {
         if (args.size != 1) return false
 
         val hist = EcoPlugin.instance.analytics.getHistory(args[0])!!
-        val data = hist.getFirstNDays(3)
+        val data = hist.getFirstNDays(30)
 
         val graph = Graph.create(
-            width = 60,
-            height = 14,
+            timescale = "hours",
             points = data
         )
 
-//        if (sender is Player) {
-//            val it = ItemStack(Material.BOOK, 1)
-//            val im = it.itemMeta!!
-//            im.lore = graph
-//            im.setDisplayName("&e${args[0]} volume history".color())
-//            it.itemMeta = im
-//
-//            sender.inventory.addItem(it)
-//        }
+        if (sender is Player) {
+            val it = ItemStack(Material.BOOK, 1)
+            val im = it.itemMeta!!
+            im.lore = graph
+            im.setDisplayName("&e${args[0]} volume history".color())
+            it.itemMeta = im
+
+            sender.inventory.addItem(it)
+        }
 
         graph.forEach(sender::msg)
         return true
