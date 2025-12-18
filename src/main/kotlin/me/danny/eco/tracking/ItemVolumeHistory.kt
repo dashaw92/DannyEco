@@ -17,8 +17,6 @@ internal class ItemVolumeHistory(val bins: LongArray = LongArray(TOTAL_BINS.toIn
         val numBins = clampedDays * BINS_PER_DAY
         return bins.slice(0 until numBins.toInt()).reversed()
     }
-
-    fun averagePerDay() = bins.sum() / TOTAL_DAYS
 }
 
 // [1, 2, 3, ..., n].shift(1) -> [0, 1, 2, 3, ...]

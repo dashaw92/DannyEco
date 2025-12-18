@@ -1,5 +1,6 @@
 package me.danny.eco
 
+import java.util.concurrent.TimeUnit
 import kotlin.math.floor
 import kotlin.math.round
 
@@ -8,8 +9,13 @@ object Graph {
         width: Int = 58,
         height: Int = 14,
         points: List<Long>,
-        timescale: String
+        resolution: Long,
+        timescale: TimeUnit
     ): List<String> {
+        if (points.all { it == 0L }) {
+            return listOf("&7&oNever sold.".color())
+        }
+
         val axisBorder = "&7▇"
         val blank = "&8╱"
         val full = "&2▇"
@@ -17,7 +23,7 @@ object Graph {
 
         val binsPerDiv = ((points.size - 1) / (width - 1).toDouble())
 
-        val yDiv = points.max() / (height + 1).toDouble()
+        val yDiv = points.max() / height.toDouble()
         val graph = height.downTo(0).map { y ->
             val line = (0..width).joinToString("") { x ->
                 if (y == 0 || x == 0) axisBorder
@@ -38,7 +44,7 @@ object Graph {
             "$line $suffix".color()
         }.toMutableList()
 
-        graph.add("&7&oX Scale: ${round(binsPerDiv * 100.0) / 100.0} $timescale per division.".color())
+        graph.add("&7&oX Scale: ${round((resolution * binsPerDiv) * 100.0) / 100.0} ${timescale.name.lowercase()} per division.".color())
         graph.add("&7&oY Scale: ${fmtAsK(yDiv)} units sold per division.".color())
         return graph
     }

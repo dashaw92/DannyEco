@@ -7,6 +7,8 @@ import me.danny.eco.commands.ReloadWorth
 import me.danny.eco.commands.SellCommand
 import me.danny.eco.commands.SetWorthCommand
 import me.danny.eco.commands.WorthCommand
+import me.danny.eco.gui.GuiListener
+import me.danny.eco.gui.ViewerInventory
 import me.danny.eco.logging.Logging
 import me.danny.eco.logging.getLogging
 import me.danny.eco.tracking.Analytics
@@ -27,7 +29,7 @@ class EcoPlugin : JavaPlugin() {
     internal lateinit var ecolog: Logging
     internal lateinit var worth: Worth
     internal lateinit var analytics: Analytics
-    private var taskHandle: Int = -1
+    private var resetTaskHandle: Int = -1
 
     override fun onLoad() {
         instance = this
@@ -55,9 +57,12 @@ class EcoPlugin : JavaPlugin() {
 
         getCommand("bin")!!.setExecutor(BinCommand)
         startTask()
+
+        Bukkit.getPluginManager().registerEvents(GuiListener, this)
     }
 
     override fun onDisable() {
+        ViewerInventory.onDisable()
         analytics.save()
         ecolog.save()
     }
@@ -76,11 +81,11 @@ class EcoPlugin : JavaPlugin() {
     }
 
     internal fun startTask() {
-        if (taskHandle != -1) {
-            Bukkit.getScheduler().cancelTask(taskHandle)
+        if (resetTaskHandle != -1) {
+            Bukkit.getScheduler().cancelTask(resetTaskHandle)
         }
 
-        taskHandle = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, ResetTask, 0L, config.resetDelayTicks)
+        resetTaskHandle = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, ResetTask, 0L, config.resetDelayTicks)
     }
 }
 
